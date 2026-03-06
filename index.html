@@ -444,7 +444,7 @@ async function transcribeGemini(blob) {
 async function answerOpenAI(t) {
   const r = await fetch("https://api.openai.com/v1/chat/completions", {
     method:"POST", headers:{"Content-Type":"application/json", Authorization:`Bearer ${apiKey}`},
-    body: JSON.stringify({ model:"gpt-5-mini", max_tokens:400,
+    body: JSON.stringify({ model:"gpt-5-mini", max_completion_tokens:400,
       messages:[{ role:"system", content:`${sessionPrompt}\n\nUse bullet points when helpful.` },{ role:"user", content:t }]})});
   if (!r.ok) throw new Error(await r.text());
   return (await r.json()).choices[0].message.content;
