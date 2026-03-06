@@ -225,7 +225,7 @@
           <div class="orb" id="orb">🎙</div>
         </div>
         <p class="orb-label" id="orb-label" style="color:#6366f1">Hold Space to Talk</p>
-        <p class="orb-hint">Hold <kbd>Space</kbd> or tap & hold the orb</p>
+        <p class="orb-hint">Press <kbd>Space</kbd> to start / stop recording</p>
       </div>
     </div>
 
@@ -248,8 +248,8 @@ pdfjsLib.GlobalWorkerOptions.workerSrc = "https://cdnjs.cloudflare.com/ajax/libs
 
 const COLORS = { openai:"#10a37f", anthropic:"#c96442", gemini:"#4285f4" };
 const STATE_CFG = {
-  idle:      { label:"Hold Space to Talk",  pulse:false, color:"#6366f1", icon:"🎙" },
-  listening: { label:"Listening…",          pulse:true,  color:"#ef4444", icon:"🎤" },
+  idle:      { label:"Press Space to Start", pulse:false, color:"#6366f1", icon:"🎙" },
+  listening: { label:"Listening — press Space to stop", pulse:true,  color:"#ef4444", icon:"🎤" },
   thinking:  { label:"Thinking…",           pulse:true,  color:"#f59e0b", icon:"⏳" },
   answer:    { label:"Hold Space for next", pulse:false, color:"#10b981", icon:"💬" },
   error:     { label:"Error — try again",   pulse:false, color:"#ef4444", icon:"⚠️" },
@@ -648,11 +648,11 @@ async function answerGemini(t, sysPrompt) {
 
 // ── Keyboard ───────────────────────────────────────────────────────────────
 document.addEventListener("keydown", e => {
-  if (e.code==="Space" && !e.repeat && appState!=="thinking"
-    && document.getElementById("app").style.display!=="none") { e.preventDefault(); startRec(); }
-});
-document.addEventListener("keyup", e => {
-  if (e.code==="Space" && document.getElementById("app").style.display!=="none") { e.preventDefault(); stopRec(); }
+  if (e.code==="Space" && !e.repeat && document.getElementById("app").style.display!=="none") {
+    e.preventDefault();
+    if (appState === "listening") stopRec();
+    else if (appState !== "thinking") startRec();
+  }
 });
 
 document.addEventListener("DOMContentLoaded", () => {
