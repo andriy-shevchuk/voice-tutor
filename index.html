@@ -388,7 +388,8 @@ async function stopRec() {
   await new Promise(res => { mediaRec.onstop = res; mediaRec.stop(); });
   setState("thinking");
   const blob = new Blob(chunks, { type: mediaRec.mimeType });
-  if (blob.size < 1000) { showError("Too short — try again."); setState("error"); return; }
+      if (blob.size < 1000) { showError("Too short — try again."); setState("error"); return; }
+    console.log("Recording MIME type:", mediaRec.mimeType, "Blob type:", blob.type, "Size:", blob.size);
   try {
     let transcript = provider === "openai" ? await transcribeOpenAI(blob) : await transcribeGemini(blob);
     showQuestion(transcript);
@@ -406,12 +407,20 @@ async function stopRec() {
 
 // ── API ────────────────────────────────────────────────────────────────────
 async function transcribeOpenAI(blob) {
+  // Determine a safe extension that OpenAI accepts
+  const mime = blob.type || "";
+  let ext = "webm";
+  if (mime.includes("ogg"))  ext = "ogg";
+  else if (mime.includes("mp4")) ext = "mp4";
+  else if (mime.includes("mpeg")) ext = "mpeg";
+  else if (mime.includes("wav")) ext = "wav";
+
+  // If mime type is totally unknown, re-wrap as webm
+  const safeMime = mime || "audio/webm";
+  const safeBlob = new Blob([await blob.arrayBuffer()], { type: safeMime });
+
   const fd = new FormData();
-  const ext = blob.type.includes("ogg") ? "ogg"
-             : blob.type.includes("mp4") ? "mp4"
-             : blob.type.includes("mpeg") ? "mpeg"
-             : "webm";
-  fd.append("file", blob, `audio.${ext}`);
+  fd.append("file", safeBlob, `recording.${ext}`);
   fd.append("model", "whisper-1");
   fd.append("language", speechLang);
   const r = await fetch("https://api.openai.com/v1/audio/transcriptions",
