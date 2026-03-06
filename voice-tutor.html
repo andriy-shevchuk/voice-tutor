@@ -1,0 +1,459 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Voice Tutor</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Segoe UI', system-ui, sans-serif; min-height: 100vh; transition: background .3s, color .3s; }
+
+  /* ── THEMES ── */
+  body.dark  { background: #0f0f17; color: #e2e2f0; }
+  body.light { background: #f4f4f8; color: #1a1a2e; }
+
+  /* cards */
+  body.dark  .card, body.dark  #app { --card: #1a1a2e; --card2: #12121e; --border: #2a2a3a; --sub: #888; --hint: #555; --inp-bg: #111; }
+  body.light .card, body.light #app { --card: #ffffff; --card2: #f0f0f8; --border: #d0d0e0; --sub: #666; --hint: #999; --inp-bg: #f9f9ff; }
+
+  /* SETUP */
+  #setup { display: flex; align-items: center; justify-content: center; min-height: 100vh; padding: 24px; }
+  .card { background: var(--card); border-radius: 20px; padding: 36px 32px; width: 100%; max-width: 520px; box-shadow: 0 24px 80px #0002; border: 1px solid var(--border); }
+  .card h1 { font-size: 26px; font-weight: 700; margin-bottom: 4px; }
+  .card p.sub { color: var(--sub); font-size: 14px; margin-bottom: 28px; }
+  label.lbl { display: block; color: var(--sub); font-size: 12px; font-weight: 600; letter-spacing: .8px; margin-bottom: 6px; text-transform: uppercase; }
+  .providers { display: flex; gap: 8px; margin-bottom: 20px; }
+  .provider-btn { flex: 1; padding: 10px 0; border-radius: 10px; border: 2px solid var(--border); background: var(--inp-bg); color: var(--sub); font-size: 13px; font-weight: 600; cursor: pointer; transition: all .2s; font-family: inherit; }
+  .provider-btn.active-openai    { border-color: #10a37f; background: #10a37f22; color: #10a37f; }
+  .provider-btn.active-anthropic { border-color: #c96442; background: #c9644222; color: #c96442; }
+  .provider-btn.active-gemini    { border-color: #4285f4; background: #4285f422; color: #4285f4; }
+  input, textarea { width: 100%; background: var(--inp-bg); border: 1.5px solid var(--border); border-radius: 10px; padding: 11px 14px; color: inherit; font-size: 14px; outline: none; font-family: inherit; transition: background .3s, border .3s, color .3s; }
+  .inp-wrap { position: relative; margin-bottom: 20px; }
+  .inp-wrap input { padding-right: 44px; }
+  .eye-btn { position: absolute; right: 12px; top: 50%; transform: translateY(-50%); background: none; border: none; cursor: pointer; color: var(--sub); font-size: 18px; }
+  textarea { resize: vertical; line-height: 1.5; margin-bottom: 0; }
+  .hint { color: var(--hint); font-size: 12px; margin: 4px 0 24px; }
+  .start-btn { width: 100%; padding: 14px; border-radius: 12px; border: none; font-size: 16px; font-weight: 700; letter-spacing: .3px; transition: all .2s; font-family: inherit; }
+  .start-btn.ready    { background: linear-gradient(135deg,#6366f1,#8b5cf6); color: #fff; cursor: pointer; }
+  .start-btn.disabled { background: var(--border); color: var(--hint); cursor: not-allowed; }
+
+  /* APP */
+  #app { display: none; flex-direction: column; min-height: 100vh; }
+  header { display: flex; align-items: center; justify-content: space-between; padding: 14px 24px; border-bottom: 1px solid var(--border); background: var(--card); }
+  .header-left { display: flex; align-items: center; gap: 10px; }
+  .header-left h2 { font-size: 17px; font-weight: 700; }
+  .provider-tag { font-size: 11px; font-weight: 700; padding: 3px 8px; border-radius: 6px; }
+  .header-right { display: flex; align-items: center; gap: 12px; }
+  .font-ctrl { display: flex; align-items: center; gap: 6px; }
+  .font-ctrl .fa { color: var(--hint); font-size: 12px; }
+  .font-ctrl .fb { color: var(--sub);  font-size: 16px; }
+  input[type=range] { width: 80px; accent-color: #6366f1; cursor: pointer; }
+  .icon-btn { background: var(--card2); border: 1px solid var(--border); color: var(--sub); padding: 6px 12px; border-radius: 8px; cursor: pointer; font-size: 13px; font-family: inherit; transition: all .2s; }
+  .icon-btn:hover { opacity: .8; }
+
+  /* Theme toggle */
+  #theme-btn { font-size: 18px; background: none; border: none; cursor: pointer; padding: 4px 8px; border-radius: 8px; }
+
+  .main { display: flex; flex: 1; overflow: hidden; }
+  .center { flex: 1; display: flex; flex-direction: column; padding: 28px 32px; overflow-y: auto; gap: 20px; }
+
+  /* Answer & question boxes */
+  .q-box { background: var(--card); border: 1px solid var(--border); border-radius: 14px; padding: 16px 20px; }
+  .box-title { color: var(--hint); font-size: 11px; font-weight: 700; letter-spacing: .8px; text-transform: uppercase; margin-bottom: 6px; }
+  .q-text { color: var(--sub); line-height: 1.5; }
+  .a-box { background: var(--card2); border: 1px solid var(--border); border-radius: 16px; padding: 22px 24px; }
+  .a-line { display: flex; gap: 12px; margin-bottom: 14px; align-items: flex-start; }
+  .a-bullet { color: #6366f1; flex-shrink: 0; margin-top: 3px; }
+  .a-text { line-height: 1.6; }
+  .err-box { background: #2a1a1a; border: 1px solid #5a2a2a; border-radius: 12px; padding: 14px 18px; color: #ef4444; font-size: 14px; }
+
+  /* Orb — now sits at the bottom */
+  .orb-wrap { display: flex; flex-direction: column; align-items: center; padding: 24px 0 8px; margin-top: auto; }
+  .orb-ring { position: relative; margin-bottom: 12px; }
+  .orb-pulse { position: absolute; inset: -8px; border-radius: 50%; animation: pulse 1s ease-in-out infinite; }
+  .orb { width: 72px; height: 72px; border-radius: 50%; border: 3px solid; display: flex; align-items: center; justify-content: center; font-size: 30px; }
+  .orb-label { font-weight: 700; font-size: 14px; letter-spacing: .5px; }
+  .orb-hint  { color: var(--hint); font-size: 12px; margin-top: 4px; }
+  kbd { background: var(--card); border: 1px solid var(--border); border-radius: 6px; padding: 2px 8px; color: var(--sub); font-family: inherit; font-size: 12px; }
+
+  /* History */
+  #history { width: 240px; border-left: 1px solid var(--border); overflow-y: auto; padding: 16px; background: var(--card); }
+  .hist-title { color: var(--hint); font-size: 11px; font-weight: 700; letter-spacing: .8px; text-transform: uppercase; margin-bottom: 12px; }
+  .hist-item { margin-bottom: 10px; background: var(--card2); border: 1px solid var(--border); border-radius: 10px; padding: 10px 12px; cursor: pointer; transition: opacity .2s; }
+  .hist-item:hover { opacity: .75; }
+  .hist-q { color: var(--sub); font-size: 12px; margin-bottom: 4px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .hist-a { color: var(--hint); font-size: 11px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+  @keyframes pulse { 0%,100%{transform:scale(1);opacity:.6} 50%{transform:scale(1.15);opacity:1} }
+</style>
+</head>
+<body class="dark">
+
+<!-- SETUP -->
+<div id="setup">
+  <div class="card">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px">
+      <h1>🎙 Voice Tutor</h1>
+      <button id="theme-btn" onclick="toggleTheme()" title="Toggle theme">🌙</button>
+    </div>
+    <p class="sub">Configure your session, then start talking.</p>
+
+    <label class="lbl">AI Provider</label>
+    <div class="providers">
+      <button class="provider-btn active-openai" data-p="openai"    onclick="selectProvider('openai')">OpenAI</button>
+      <button class="provider-btn"              data-p="anthropic"  onclick="selectProvider('anthropic')">Anthropic</button>
+      <button class="provider-btn"              data-p="gemini"     onclick="selectProvider('gemini')">Gemini</button>
+    </div>
+
+    <label class="lbl">API Key</label>
+    <div class="inp-wrap">
+      <input type="password" id="api-key" placeholder="sk-..." oninput="checkReady()" />
+      <button class="eye-btn" onclick="toggleKey()">👁</button>
+    </div>
+
+    <label class="lbl">Session Context</label>
+    <textarea id="prompt" rows="4" oninput="checkReady()">You will be providing answers on Quality Assurance topics for Middle Manual QA Engineer. Speak in English. Keep answers short, structured, practical and concise.</textarea>
+    <p class="hint">Tell the AI who it's speaking to and what topics to focus on.</p>
+
+    <button class="start-btn ready" id="start-btn" onclick="startSession()">Start Session →</button>
+  </div>
+</div>
+
+<!-- APP -->
+<div id="app">
+  <header>
+    <div class="header-left">
+      <span style="font-size:22px">🎙</span>
+      <h2>Voice Tutor</h2>
+      <span class="provider-tag" id="provider-tag"></span>
+    </div>
+    <div class="header-right">
+      <div class="font-ctrl">
+        <span class="fa">A</span>
+        <input type="range" min="14" max="42" value="22" id="font-range" oninput="setFontSize(this.value)" />
+        <span class="fb">A</span>
+      </div>
+      <button id="theme-btn-app" class="icon-btn" onclick="toggleTheme()">🌙</button>
+      <button class="icon-btn" onclick="goSetup()">⚙ Setup</button>
+    </div>
+  </header>
+
+  <div class="main">
+    <div class="center" id="center">
+
+      <!-- Q & A boxes appear here -->
+      <div id="q-box" class="q-box" style="display:none">
+        <div class="box-title">You asked</div>
+        <p class="q-text" id="q-text"></p>
+      </div>
+
+      <div id="a-box" class="a-box" style="display:none">
+        <div class="box-title">Answer</div>
+        <div id="a-lines"></div>
+      </div>
+
+      <div id="err-box" class="err-box" style="display:none"></div>
+
+      <!-- Orb at the bottom -->
+      <div class="orb-wrap">
+        <div class="orb-ring" id="orb-ring">
+          <div class="orb" id="orb">🎙</div>
+        </div>
+        <p class="orb-label" id="orb-label" style="color:#6366f1">Hold Space to Talk</p>
+        <p class="orb-hint">Hold <kbd>Space</kbd> or tap & hold the orb</p>
+      </div>
+    </div>
+
+    <div id="history" style="display:none">
+      <div class="hist-title">History</div>
+      <div id="hist-list"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+let provider = "openai", apiKey = "", sessionPrompt = "";
+let appState = "idle", mediaRec = null, chunks = [], holding = false, fontSize = 22;
+let history = [], isDark = true;
+
+const COLORS = { openai:"#10a37f", anthropic:"#c96442", gemini:"#4285f4" };
+const STATE_CFG = {
+  idle:      { label:"Hold Space to Talk",  pulse:false, color:"#6366f1", icon:"🎙" },
+  listening: { label:"Listening…",          pulse:true,  color:"#ef4444", icon:"🎤" },
+  thinking:  { label:"Thinking…",           pulse:true,  color:"#f59e0b", icon:"⏳" },
+  answer:    { label:"Hold Space for next", pulse:false, color:"#10b981", icon:"💬" },
+  error:     { label:"Error — try again",   pulse:false, color:"#ef4444", icon:"⚠️" },
+};
+
+// ── Theme ──────────────────────────────────────────────────────────────────
+function toggleTheme() {
+  isDark = !isDark;
+  document.body.className = isDark ? "dark" : "light";
+  const icon = isDark ? "🌙" : "☀️";
+  document.getElementById("theme-btn").textContent = icon;
+  const appBtn = document.getElementById("theme-btn-app");
+  if (appBtn) appBtn.textContent = icon;
+}
+
+// ── Setup ──────────────────────────────────────────────────────────────────
+function selectProvider(p) {
+  provider = p;
+  document.querySelectorAll(".provider-btn").forEach(b =>
+    b.className = "provider-btn" + (b.dataset.p === p ? " active-"+p : ""));
+  document.getElementById("api-key").placeholder =
+    p==="openai" ? "sk-..." : p==="anthropic" ? "sk-ant-..." : "AIza...";
+  checkReady();
+}
+
+function toggleKey() {
+  const el = document.getElementById("api-key");
+  el.type = el.type === "password" ? "text" : "password";
+}
+
+function checkReady() {
+  const ok = document.getElementById("api-key").value.trim().length > 8
+          && document.getElementById("prompt").value.trim().length > 5;
+  document.getElementById("start-btn").className = "start-btn " + (ok ? "ready" : "disabled");
+}
+
+// pre-fill check on load
+window.onload = () => checkReady();
+
+function startSession() {
+  apiKey = document.getElementById("api-key").value.trim();
+  sessionPrompt = document.getElementById("prompt").value.trim();
+  if (!apiKey || !sessionPrompt) return;
+  const tag = document.getElementById("provider-tag");
+  tag.textContent = provider.charAt(0).toUpperCase() + provider.slice(1);
+  tag.style.background = COLORS[provider] + "22";
+  tag.style.color = COLORS[provider];
+  document.getElementById("setup").style.display = "none";
+  document.getElementById("app").style.display = "flex";
+  setState("idle");
+}
+
+function goSetup() {
+  document.getElementById("app").style.display = "none";
+  document.getElementById("setup").style.display = "flex";
+}
+
+// ── UI State ───────────────────────────────────────────────────────────────
+function setState(s) {
+  appState = s;
+  const cfg = STATE_CFG[s];
+  const orb  = document.getElementById("orb");
+  const ring  = document.getElementById("orb-ring");
+  const lbl   = document.getElementById("orb-label");
+  orb.textContent = cfg.icon;
+  orb.style.borderColor = cfg.color;
+  orb.style.background  = cfg.color + "22";
+  lbl.textContent = cfg.label;
+  lbl.style.color = cfg.color;
+  let pulse = ring.querySelector(".orb-pulse");
+  if (cfg.pulse) {
+    if (!pulse) { pulse = document.createElement("div"); pulse.className="orb-pulse"; ring.prepend(pulse); }
+    pulse.style.background = cfg.color + "44";
+  } else { if (pulse) pulse.remove(); }
+}
+
+function setFontSize(v) {
+  fontSize = +v;
+  document.querySelectorAll(".a-text").forEach(el => el.style.fontSize = fontSize+"px");
+  document.querySelectorAll(".a-bullet").forEach(el => el.style.fontSize = (fontSize*.8)+"px");
+  document.getElementById("q-text").style.fontSize = Math.max(14, fontSize-6)+"px";
+}
+
+function showQuestion(text) {
+  const el = document.getElementById("q-text");
+  el.textContent = `"${text}"`;
+  el.style.fontSize = Math.max(14, fontSize-6)+"px";
+  document.getElementById("q-box").style.display = "block";
+}
+
+function showAnswer(lines) {
+  const container = document.getElementById("a-lines");
+  container.innerHTML = "";
+  lines.forEach(seg => {
+    const row = document.createElement("div");
+    row.className = "a-line";
+    if (seg.bullet) {
+      const bull = document.createElement("span");
+      bull.className = "a-bullet";
+      bull.style.fontSize = (fontSize*.8)+"px";
+      bull.textContent = "▸";
+      row.appendChild(bull);
+    }
+    const p = document.createElement("p");
+    p.className = "a-text";
+    p.style.fontSize = fontSize+"px";
+    p.style.fontWeight = seg.bullet ? "400" : "500";
+    p.textContent = seg.text;
+    row.appendChild(p);
+    container.appendChild(row);
+  });
+  document.getElementById("a-box").style.display = "block";
+}
+
+function showError(msg) {
+  const box = document.getElementById("err-box");
+  box.textContent = "⚠ " + msg;
+  box.style.display = "block";
+}
+
+function clearOutput() {
+  document.getElementById("q-box").style.display = "none";
+  document.getElementById("a-box").style.display = "none";
+  document.getElementById("err-box").style.display = "none";
+}
+
+// ── History ────────────────────────────────────────────────────────────────
+function addHistory(q, a) {
+  history.unshift({ q, a });
+  if (history.length > 20) history.pop();
+  const panel = document.getElementById("history");
+  const list  = document.getElementById("hist-list");
+  panel.style.display = "block";
+  list.innerHTML = "";
+  history.forEach(h => {
+    const item = document.createElement("div");
+    item.className = "hist-item";
+    item.innerHTML = `<div class="hist-q">"${h.q}"</div><div class="hist-a">${h.a.slice(0,60)}…</div>`;
+    item.onclick = () => { showQuestion(h.q); showAnswer(parseAnswer(h.a)); setState("answer"); };
+    list.appendChild(item);
+  });
+}
+
+function parseAnswer(text) {
+  return text.split("\n").filter(l => l.trim()).map(line => {
+    const isBullet = /^(\s*[-•*]|\s*\d+\.|\s*\*\*)/.test(line);
+    const clean = line
+      .replace(/^[\s\-•#\d.]+/, "")        // remove list prefixes
+      .replace(/\*\*([^*]*)\*\*/g, "$1")   // **bold**
+      .replace(/\*([^*]+)\*/g, "$1")       // *italic*
+      .replace(/`([^`]+)`/g, "$1")         // `code`
+      .replace(/_{1,2}([^_]+)_{1,2}/g, "$1") // _underline_
+      .replace(/\*+/g, "")                 // any remaining asterisks
+      .replace(/_+/g, "")                  // any remaining underscores
+      .replace(/:\s*$/, "")                // trailing colon
+      .trim();
+    return { text: clean, bullet: isBullet };
+  }).filter(l => l.text.length > 0);
+}
+
+// ── Recording ──────────────────────────────────────────────────────────────
+async function startRec() {
+  if (holding || appState === "thinking") return;
+  holding = true;
+  clearOutput();
+  setState("listening");
+  try {
+    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+    const mime = MediaRecorder.isTypeSupported("audio/webm") ? "audio/webm" : "audio/ogg";
+    mediaRec = new MediaRecorder(stream, { mimeType: mime });
+    chunks = [];
+    mediaRec.ondataavailable = e => { if (e.data.size > 0) chunks.push(e.data); };
+    mediaRec.start(100);
+  } catch(e) {
+    showError("Microphone access denied. Please allow microphone in browser settings.");
+    setState("error"); holding = false;
+  }
+}
+
+async function stopRec() {
+  if (!holding || !mediaRec) return;
+  holding = false;
+  mediaRec.stream.getTracks().forEach(t => t.stop());
+  await new Promise(res => { mediaRec.onstop = res; mediaRec.stop(); });
+  setState("thinking");
+  const blob = new Blob(chunks, { type: mediaRec.mimeType });
+  if (blob.size < 1000) { showError("Too short — try again."); setState("error"); return; }
+  try {
+    let transcript = provider === "openai" ? await transcribeOpenAI(blob) : await transcribeGemini(blob);
+    showQuestion(transcript);
+    let raw = provider === "openai" ? await answerOpenAI(transcript)
+            : provider === "anthropic" ? await answerAnthropic(transcript)
+            : await answerGemini(transcript);
+    showAnswer(parseAnswer(raw));
+    addHistory(transcript, raw);
+    setState("answer");
+  } catch(e) {
+    showError(e.message?.slice(0,160) || "Unknown error");
+    setState("error");
+  }
+}
+
+// ── API ────────────────────────────────────────────────────────────────────
+async function transcribeOpenAI(blob) {
+  const fd = new FormData();
+  fd.append("file", blob, "audio.webm");
+  fd.append("model", "whisper-1");
+  const r = await fetch("https://api.openai.com/v1/audio/transcriptions",
+    { method:"POST", headers:{ Authorization:`Bearer ${apiKey}` }, body:fd });
+  if (!r.ok) throw new Error(await r.text());
+  return (await r.json()).text;
+}
+
+async function transcribeGemini(blob) {
+  const buf = await blob.arrayBuffer();
+  const b64 = btoa(String.fromCharCode(...new Uint8Array(buf)));
+  const r = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`,
+    { method:"POST", headers:{"Content-Type":"application/json"},
+      body: JSON.stringify({ contents:[{ parts:[
+        { inline_data:{ mime_type: blob.type||"audio/webm", data:b64 } },
+        { text:"Transcribe the speech. Return only the transcribed text." }
+      ]}]})});
+  if (!r.ok) throw new Error(await r.text());
+  return (await r.json()).candidates?.[0]?.content?.parts?.[0]?.text ?? "";
+}
+
+async function answerOpenAI(t) {
+  const r = await fetch("https://api.openai.com/v1/chat/completions", {
+    method:"POST", headers:{"Content-Type":"application/json", Authorization:`Bearer ${apiKey}`},
+    body: JSON.stringify({ model:"gpt-4o-mini", max_tokens:400,
+      messages:[{ role:"system", content:`${sessionPrompt}\n\nUse bullet points when helpful.` },{ role:"user", content:t }]})});
+  if (!r.ok) throw new Error(await r.text());
+  return (await r.json()).choices[0].message.content;
+}
+
+async function answerAnthropic(t) {
+  const r = await fetch("https://api.anthropic.com/v1/messages", {
+    method:"POST", headers:{"Content-Type":"application/json","x-api-key":apiKey,"anthropic-version":"2023-06-01"},
+    body: JSON.stringify({ model:"claude-sonnet-4-20250514", max_tokens:400,
+      system:`${sessionPrompt}\n\nUse bullet points when helpful.`,
+      messages:[{ role:"user", content:t }]})});
+  if (!r.ok) throw new Error(await r.text());
+  return (await r.json()).content[0].text;
+}
+
+async function answerGemini(t) {
+  const r = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`,
+    { method:"POST", headers:{"Content-Type":"application/json"},
+      body: JSON.stringify({
+        system_instruction:{ parts:[{ text:`${sessionPrompt}\n\nUse bullet points when helpful.` }] },
+        contents:[{ parts:[{ text:t }] }],
+        generationConfig:{ maxOutputTokens:400 }})});
+  if (!r.ok) throw new Error(await r.text());
+  return (await r.json()).candidates?.[0]?.content?.parts?.[0]?.text ?? "";
+}
+
+// ── Keyboard ───────────────────────────────────────────────────────────────
+document.addEventListener("keydown", e => {
+  if (e.code==="Space" && !e.repeat && appState!=="thinking"
+    && document.getElementById("app").style.display!=="none") { e.preventDefault(); startRec(); }
+});
+document.addEventListener("keyup", e => {
+  if (e.code==="Space" && document.getElementById("app").style.display!=="none") { e.preventDefault(); stopRec(); }
+});
+
+// Orb touch/click support
+document.addEventListener("DOMContentLoaded", () => {
+  const orb = document.getElementById("orb");
+  orb.addEventListener("mousedown", startRec);
+  orb.addEventListener("mouseup", stopRec);
+  orb.addEventListener("touchstart", e => { e.preventDefault(); startRec(); });
+  orb.addEventListener("touchend",   e => { e.preventDefault(); stopRec(); });
+  orb.style.cursor = "pointer";
+});
+</script>
+</body>
+</html>
