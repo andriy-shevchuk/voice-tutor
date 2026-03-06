@@ -4,15 +4,12 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>Voice Tutor</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
 <style>
   * { box-sizing: border-box; margin: 0; padding: 0; }
   body { font-family: 'Segoe UI', system-ui, sans-serif; min-height: 100vh; transition: background .3s, color .3s; }
-
-  /* ── THEMES ── */
   body.dark  { background: #0f0f17; color: #e2e2f0; }
   body.light { background: #f4f4f8; color: #1a1a2e; }
-
-  /* cards */
   body.dark  .card, body.dark  #app { --card: #1a1a2e; --card2: #12121e; --border: #2a2a3a; --sub: #888; --hint: #555; --inp-bg: #111; }
   body.light .card, body.light #app { --card: #ffffff; --card2: #f0f0f8; --border: #d0d0e0; --sub: #666; --hint: #999; --inp-bg: #f9f9ff; }
 
@@ -27,7 +24,7 @@
   .provider-btn.active-openai    { border-color: #10a37f; background: #10a37f22; color: #10a37f; }
   .provider-btn.active-anthropic { border-color: #c96442; background: #c9644222; color: #c96442; }
   .provider-btn.active-gemini    { border-color: #4285f4; background: #4285f422; color: #4285f4; }
-  input, textarea { width: 100%; background: var(--inp-bg); border: 1.5px solid var(--border); border-radius: 10px; padding: 11px 14px; color: inherit; font-size: 14px; outline: none; font-family: inherit; transition: background .3s, border .3s, color .3s; }
+  input, textarea, select { width: 100%; background: var(--inp-bg); border: 1.5px solid var(--border); border-radius: 10px; padding: 11px 14px; color: inherit; font-size: 14px; outline: none; font-family: inherit; transition: background .3s, border .3s, color .3s; }
   .inp-wrap { position: relative; margin-bottom: 20px; }
   .inp-wrap input { padding-right: 44px; }
   .eye-btn { position: absolute; right: 12px; top: 50%; transform: translateY(-50%); background: none; border: none; cursor: pointer; color: var(--sub); font-size: 18px; }
@@ -39,25 +36,42 @@
 
   /* APP */
   #app { display: none; flex-direction: column; min-height: 100vh; }
-  header { display: flex; align-items: center; justify-content: space-between; padding: 14px 24px; border-bottom: 1px solid var(--border); background: var(--card); }
+  header { display: flex; align-items: center; justify-content: space-between; padding: 14px 24px; border-bottom: 1px solid var(--border); background: var(--card); flex-wrap: wrap; gap: 10px; }
   .header-left { display: flex; align-items: center; gap: 10px; }
   .header-left h2 { font-size: 17px; font-weight: 700; }
   .provider-tag { font-size: 11px; font-weight: 700; padding: 3px 8px; border-radius: 6px; }
-  .header-right { display: flex; align-items: center; gap: 12px; }
+  .header-right { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
   .font-ctrl { display: flex; align-items: center; gap: 6px; }
   .font-ctrl .fa { color: var(--hint); font-size: 12px; }
   .font-ctrl .fb { color: var(--sub);  font-size: 16px; }
   input[type=range] { width: 80px; accent-color: #6366f1; cursor: pointer; }
   .icon-btn { background: var(--card2); border: 1px solid var(--border); color: var(--sub); padding: 6px 12px; border-radius: 8px; cursor: pointer; font-size: 13px; font-family: inherit; transition: all .2s; }
-  .icon-btn:hover { opacity: .8; }
-
-  /* Theme toggle */
   #theme-btn { font-size: 18px; background: none; border: none; cursor: pointer; padding: 4px 8px; border-radius: 8px; }
 
-  .main { display: flex; flex: 1; overflow: hidden; }
-  .center { flex: 1; display: flex; flex-direction: column; padding: 28px 32px; overflow-y: auto; gap: 20px; }
+  /* Mode toggle */
+  .mode-toggle { display: flex; align-items: center; gap: 8px; background: var(--card2); border: 1px solid var(--border); border-radius: 10px; padding: 4px; }
+  .mode-btn { padding: 6px 14px; border-radius: 7px; border: none; font-size: 12px; font-weight: 700; cursor: pointer; font-family: inherit; transition: all .2s; background: none; color: var(--sub); }
+  .mode-btn.active { background: linear-gradient(135deg,#6366f1,#8b5cf6); color: #fff; }
 
-  /* Answer & question boxes */
+  .main { display: flex; flex: 1; overflow: hidden; }
+  .center { flex: 1; display: flex; flex-direction: column; padding: 24px 32px; overflow-y: auto; gap: 16px; }
+
+  /* PDF upload zone */
+  #pdf-zone { border: 2px dashed var(--border); border-radius: 16px; padding: 32px 24px; text-align: center; cursor: pointer; transition: all .2s; }
+  #pdf-zone:hover, #pdf-zone.dragover { border-color: #6366f1; background: #6366f111; }
+  #pdf-zone input { display: none; }
+  .pdf-icon { font-size: 36px; margin-bottom: 8px; }
+  .pdf-label { color: var(--sub); font-size: 14px; }
+  .pdf-label span { color: #6366f1; font-weight: 600; cursor: pointer; }
+
+  /* PDF loaded state */
+  #pdf-loaded { background: #6366f111; border: 1.5px solid #6366f155; border-radius: 14px; padding: 14px 18px; display: none; align-items: center; gap: 12px; }
+  #pdf-loaded .pdf-name { flex: 1; font-size: 14px; font-weight: 600; color: #6366f1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  #pdf-loaded .pdf-pages { font-size: 12px; color: var(--hint); }
+  #pdf-loaded .pdf-remove { background: none; border: none; cursor: pointer; color: var(--hint); font-size: 18px; padding: 0 4px; }
+  #pdf-parsing { text-align: center; color: var(--hint); font-size: 13px; padding: 16px; display: none; }
+
+  /* Q&A boxes */
   .q-box { background: var(--card); border: 1px solid var(--border); border-radius: 14px; padding: 16px 20px; }
   .box-title { color: var(--hint); font-size: 11px; font-weight: 700; letter-spacing: .8px; text-transform: uppercase; margin-bottom: 6px; }
   .q-text { color: var(--sub); line-height: 1.5; }
@@ -65,13 +79,14 @@
   .a-line { display: flex; gap: 12px; margin-bottom: 14px; align-items: flex-start; }
   .a-bullet { color: #6366f1; flex-shrink: 0; margin-top: 3px; }
   .a-text { line-height: 1.6; }
+  .not-found { background: #f59e0b11; border: 1.5px solid #f59e0b44; border-radius: 14px; padding: 16px 20px; color: #f59e0b; font-size: 15px; }
   .err-box { background: #2a1a1a; border: 1px solid #5a2a2a; border-radius: 12px; padding: 14px 18px; color: #ef4444; font-size: 14px; }
 
-  /* Orb — now sits at the bottom */
+  /* Orb */
   .orb-wrap { display: flex; flex-direction: column; align-items: center; padding: 24px 0 8px; margin-top: auto; }
   .orb-ring { position: relative; margin-bottom: 12px; }
   .orb-pulse { position: absolute; inset: -8px; border-radius: 50%; animation: pulse 1s ease-in-out infinite; }
-  .orb { width: 72px; height: 72px; border-radius: 50%; border: 3px solid; display: flex; align-items: center; justify-content: center; font-size: 30px; }
+  .orb { width: 72px; height: 72px; border-radius: 50%; border: 3px solid; display: flex; align-items: center; justify-content: center; font-size: 30px; cursor: pointer; }
   .orb-label { font-weight: 700; font-size: 14px; letter-spacing: .5px; }
   .orb-hint  { color: var(--hint); font-size: 12px; margin-top: 4px; }
   kbd { background: var(--card); border: 1px solid var(--border); border-radius: 6px; padding: 2px 8px; color: var(--sub); font-family: inherit; font-size: 12px; }
@@ -113,7 +128,7 @@
 
     <label class="lbl">Speech Language</label>
     <div class="inp-wrap" style="margin-bottom:20px">
-      <select id="lang" style="width:100%;background:var(--inp-bg);border:1.5px solid var(--border);border-radius:10px;padding:11px 14px;color:inherit;font-size:14px;outline:none;font-family:inherit;appearance:auto">
+      <select id="lang">
         <option value="en">English</option>
         <option value="uk">Ukrainian</option>
         <option value="de">German</option>
@@ -149,6 +164,11 @@
       <span class="provider-tag" id="provider-tag"></span>
     </div>
     <div class="header-right">
+      <!-- Mode toggle -->
+      <div class="mode-toggle">
+        <button class="mode-btn active" id="btn-free" onclick="setMode('free')">💬 Free</button>
+        <button class="mode-btn" id="btn-doc" onclick="setMode('doc')">📄 Doc</button>
+      </div>
       <div class="font-ctrl">
         <span class="fa">A</span>
         <input type="range" min="14" max="42" value="22" id="font-range" oninput="setFontSize(this.value)" />
@@ -162,7 +182,27 @@
   <div class="main">
     <div class="center" id="center">
 
-      <!-- Q & A boxes appear here -->
+      <!-- PDF zone (doc mode only) -->
+      <div id="pdf-zone" onclick="document.getElementById('pdf-input').click()"
+        ondragover="event.preventDefault();this.classList.add('dragover')"
+        ondragleave="this.classList.remove('dragover')"
+        ondrop="handleDrop(event)" style="display:none">
+        <input type="file" id="pdf-input" accept=".pdf" onchange="handleFile(this.files[0])">
+        <div class="pdf-icon">📄</div>
+        <div class="pdf-label">Drop your PDF here or <span>browse</span></div>
+        <div style="color:var(--hint);font-size:12px;margin-top:6px">The AI will answer only from this document</div>
+      </div>
+
+      <div id="pdf-parsing">⏳ Reading PDF...</div>
+
+      <div id="pdf-loaded">
+        <span style="font-size:22px">📄</span>
+        <span class="pdf-name" id="pdf-name"></span>
+        <span class="pdf-pages" id="pdf-pages"></span>
+        <button class="pdf-remove" onclick="removePdf()" title="Remove PDF">✕</button>
+      </div>
+
+      <!-- Q & A -->
       <div id="q-box" class="q-box" style="display:none">
         <div class="box-title">You asked</div>
         <p class="q-text" id="q-text"></p>
@@ -173,9 +213,13 @@
         <div id="a-lines"></div>
       </div>
 
+      <div id="not-found-box" class="not-found" style="display:none">
+        📭 No answer for this question was found in the uploaded document.
+      </div>
+
       <div id="err-box" class="err-box" style="display:none"></div>
 
-      <!-- Orb at the bottom -->
+      <!-- Orb -->
       <div class="orb-wrap">
         <div class="orb-ring" id="orb-ring">
           <div class="orb" id="orb">🎙</div>
@@ -193,9 +237,14 @@
 </div>
 
 <script>
+// ── State ──────────────────────────────────────────────────────────────────
 let provider = "openai", apiKey = "", sessionPrompt = "", speechLang = "en";
 let appState = "idle", mediaRec = null, chunks = [], holding = false, fontSize = 22;
 let history = [], isDark = true;
+let mode = "free"; // "free" | "doc"
+let pdfText = "", pdfFileName = "";
+
+pdfjsLib.GlobalWorkerOptions.workerSrc = "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js";
 
 const COLORS = { openai:"#10a37f", anthropic:"#c96442", gemini:"#4285f4" };
 const STATE_CFG = {
@@ -214,6 +263,67 @@ function toggleTheme() {
   document.getElementById("theme-btn").textContent = icon;
   const appBtn = document.getElementById("theme-btn-app");
   if (appBtn) appBtn.textContent = icon;
+}
+
+// ── Mode ───────────────────────────────────────────────────────────────────
+function setMode(m) {
+  mode = m;
+  document.getElementById("btn-free").className = "mode-btn" + (m==="free" ? " active" : "");
+  document.getElementById("btn-doc").className  = "mode-btn" + (m==="doc"  ? " active" : "");
+  const pdfZone   = document.getElementById("pdf-zone");
+  const pdfLoaded = document.getElementById("pdf-loaded");
+  if (m === "doc") {
+    pdfZone.style.display   = pdfText ? "none" : "block";
+    pdfLoaded.style.display = pdfText ? "flex" : "none";
+  } else {
+    pdfZone.style.display   = "none";
+    pdfLoaded.style.display = "none";
+  }
+  clearOutput();
+}
+
+// ── PDF handling ───────────────────────────────────────────────────────────
+function handleDrop(e) {
+  e.preventDefault();
+  document.getElementById("pdf-zone").classList.remove("dragover");
+  const file = e.dataTransfer.files[0];
+  if (file && file.type === "application/pdf") handleFile(file);
+}
+
+async function handleFile(file) {
+  if (!file) return;
+  pdfFileName = file.name;
+  document.getElementById("pdf-zone").style.display = "none";
+  document.getElementById("pdf-parsing").style.display = "block";
+
+  try {
+    const arrayBuffer = await file.arrayBuffer();
+    const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+    let text = "";
+    for (let i = 1; i <= pdf.numPages; i++) {
+      const page = await pdf.getPage(i);
+      const content = await page.getTextContent();
+      text += content.items.map(item => item.str).join(" ") + "\n";
+    }
+    pdfText = text.trim();
+    document.getElementById("pdf-parsing").style.display = "none";
+    document.getElementById("pdf-name").textContent = file.name;
+    document.getElementById("pdf-pages").textContent = `${pdf.numPages} page${pdf.numPages>1?"s":""}`;
+    document.getElementById("pdf-loaded").style.display = "flex";
+  } catch(e) {
+    pdfText = "";
+    document.getElementById("pdf-parsing").style.display = "none";
+    document.getElementById("pdf-zone").style.display = "block";
+    showError("Could not read PDF: " + e.message);
+  }
+}
+
+function removePdf() {
+  pdfText = ""; pdfFileName = "";
+  document.getElementById("pdf-loaded").style.display = "none";
+  document.getElementById("pdf-zone").style.display = "block";
+  document.getElementById("pdf-input").value = "";
+  clearOutput();
 }
 
 // ── Setup ──────────────────────────────────────────────────────────────────
@@ -237,7 +347,6 @@ function checkReady() {
   document.getElementById("start-btn").className = "start-btn " + (ok ? "ready" : "disabled");
 }
 
-// pre-fill check on load
 window.onload = () => checkReady();
 
 function startSession() {
@@ -282,7 +391,8 @@ function setFontSize(v) {
   fontSize = +v;
   document.querySelectorAll(".a-text").forEach(el => el.style.fontSize = fontSize+"px");
   document.querySelectorAll(".a-bullet").forEach(el => el.style.fontSize = (fontSize*.8)+"px");
-  document.getElementById("q-text").style.fontSize = Math.max(14, fontSize-6)+"px";
+  const qt = document.getElementById("q-text");
+  if (qt) qt.style.fontSize = Math.max(14, fontSize-6)+"px";
 }
 
 function showQuestion(text) {
@@ -326,6 +436,7 @@ function clearOutput() {
   document.getElementById("q-box").style.display = "none";
   document.getElementById("a-box").style.display = "none";
   document.getElementById("err-box").style.display = "none";
+  document.getElementById("not-found-box").style.display = "none";
 }
 
 // ── History ────────────────────────────────────────────────────────────────
@@ -349,22 +460,38 @@ function parseAnswer(text) {
   return text.split("\n").filter(l => l.trim()).map(line => {
     const isBullet = /^(\s*[-•*]|\s*\d+\.|\s*\*\*)/.test(line);
     const clean = line
-      .replace(/^[\s\-•#\d.]+/, "")        // remove list prefixes
-      .replace(/\*\*([^*]*)\*\*/g, "$1")   // **bold**
-      .replace(/\*([^*]+)\*/g, "$1")       // *italic*
-      .replace(/`([^`]+)`/g, "$1")         // `code`
-      .replace(/_{1,2}([^_]+)_{1,2}/g, "$1") // _underline_
-      .replace(/\*+/g, "")                 // any remaining asterisks
-      .replace(/_+/g, "")                  // any remaining underscores
-      .replace(/:\s*$/, "")                // trailing colon
+      .replace(/^[\s\-•#\d.]+/, "")
+      .replace(/\*\*([^*]*)\*\*/g, "$1")
+      .replace(/\*([^*]+)\*/g, "$1")
+      .replace(/`([^`]+)`/g, "$1")
+      .replace(/_{1,2}([^_]+)_{1,2}/g, "$1")
+      .replace(/\*+/g, "")
+      .replace(/_+/g, "")
+      .replace(/:\s*$/, "")
       .trim();
     return { text: clean, bullet: isBullet };
   }).filter(l => l.text.length > 0);
 }
 
+// ── Build system prompt ────────────────────────────────────────────────────
+function buildSystemPrompt() {
+  if (mode === "doc" && pdfText) {
+    return `You are a helpful assistant. Answer questions ONLY using the content from the document provided below.
+If the answer to the question is not found in the document, respond with exactly this text and nothing else: "NO_ANSWER_IN_DOC"
+Do not use any outside knowledge. Keep answers concise and structured. Use bullet points when helpful.
+
+DOCUMENT CONTENT:
+---
+${pdfText.slice(0, 12000)}
+---`;
+  }
+  return `${sessionPrompt}\n\nGive a concise structured answer. Use bullet points when helpful. Keep it brief.`;
+}
+
 // ── Recording ──────────────────────────────────────────────────────────────
 async function startRec() {
   if (holding || appState === "thinking") return;
+  if (mode === "doc" && !pdfText) { showError("Please upload a PDF document first."); setState("error"); return; }
   holding = true;
   clearOutput();
   setState("listening");
@@ -387,17 +514,28 @@ async function stopRec() {
   mediaRec.stream.getTracks().forEach(t => t.stop());
   await new Promise(res => { mediaRec.onstop = res; mediaRec.stop(); });
   setState("thinking");
+
   const blob = new Blob(chunks, { type: mediaRec.mimeType });
-      if (blob.size < 1000) { showError("Too short — try again."); setState("error"); return; }
-    console.log("Recording MIME type:", mediaRec.mimeType, "Blob type:", blob.type, "Size:", blob.size);
+  console.log("Recording MIME type:", mediaRec.mimeType, "Blob type:", blob.type, "Size:", blob.size);
+  if (blob.size < 1000) { showError("Too short — try again."); setState("error"); return; }
+
   try {
     let transcript = provider === "openai" ? await transcribeOpenAI(blob) : await transcribeGemini(blob);
     showQuestion(transcript);
-    let raw = provider === "openai" ? await answerOpenAI(transcript)
-            : provider === "anthropic" ? await answerAnthropic(transcript)
-            : await answerGemini(transcript);
-    showAnswer(parseAnswer(raw));
-    addHistory(transcript, raw);
+
+    const sysPrompt = buildSystemPrompt();
+    let raw = provider === "openai" ? await answerOpenAI(transcript, sysPrompt)
+            : provider === "anthropic" ? await answerAnthropic(transcript, sysPrompt)
+            : await answerGemini(transcript, sysPrompt);
+
+    // Check for "not found in doc" signal
+    if (mode === "doc" && raw.trim().includes("NO_ANSWER_IN_DOC")) {
+      document.getElementById("not-found-box").style.display = "block";
+      addHistory(transcript, "No answer found in document.");
+    } else {
+      showAnswer(parseAnswer(raw));
+      addHistory(transcript, raw);
+    }
     setState("answer");
   } catch(e) {
     showError(e.message?.slice(0,160) || "Unknown error");
@@ -407,17 +545,13 @@ async function stopRec() {
 
 // ── API ────────────────────────────────────────────────────────────────────
 async function transcribeOpenAI(blob) {
-  // Strip codec info from mime type (e.g. "audio/webm;codecs=opus" → "audio/webm")
   const baseMime = (blob.type || "audio/webm").split(";")[0].trim();
   const ext = baseMime.includes("ogg")  ? "ogg"
             : baseMime.includes("mp4")  ? "mp4"
             : baseMime.includes("mpeg") ? "mpeg"
             : baseMime.includes("wav")  ? "wav"
             : "webm";
-
-  // Re-wrap blob with clean mime type so OpenAI accepts it
   const cleanBlob = new Blob([await blob.arrayBuffer()], { type: `audio/${ext}` });
-
   const fd = new FormData();
   fd.append("file", cleanBlob, `recording.${ext}`);
   fd.append("model", "whisper-1");
@@ -441,30 +575,30 @@ async function transcribeGemini(blob) {
   return (await r.json()).candidates?.[0]?.content?.parts?.[0]?.text ?? "";
 }
 
-async function answerOpenAI(t) {
+async function answerOpenAI(t, sysPrompt) {
   const r = await fetch("https://api.openai.com/v1/chat/completions", {
     method:"POST", headers:{"Content-Type":"application/json", Authorization:`Bearer ${apiKey}`},
     body: JSON.stringify({ model:"gpt-4o-mini", max_tokens:400,
-      messages:[{ role:"system", content:`${sessionPrompt}\n\nUse bullet points when helpful.` },{ role:"user", content:t }]})});
+      messages:[{ role:"system", content: sysPrompt },{ role:"user", content:t }]})});
   if (!r.ok) throw new Error(await r.text());
   return (await r.json()).choices[0].message.content;
 }
 
-async function answerAnthropic(t) {
+async function answerAnthropic(t, sysPrompt) {
   const r = await fetch("https://api.anthropic.com/v1/messages", {
     method:"POST", headers:{"Content-Type":"application/json","x-api-key":apiKey,"anthropic-version":"2023-06-01"},
     body: JSON.stringify({ model:"claude-sonnet-4-20250514", max_tokens:400,
-      system:`${sessionPrompt}\n\nUse bullet points when helpful.`,
+      system: sysPrompt,
       messages:[{ role:"user", content:t }]})});
   if (!r.ok) throw new Error(await r.text());
   return (await r.json()).content[0].text;
 }
 
-async function answerGemini(t) {
+async function answerGemini(t, sysPrompt) {
   const r = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`,
     { method:"POST", headers:{"Content-Type":"application/json"},
       body: JSON.stringify({
-        system_instruction:{ parts:[{ text:`${sessionPrompt}\n\nUse bullet points when helpful.` }] },
+        system_instruction:{ parts:[{ text: sysPrompt }] },
         contents:[{ parts:[{ text:t }] }],
         generationConfig:{ maxOutputTokens:400 }})});
   if (!r.ok) throw new Error(await r.text());
@@ -480,14 +614,12 @@ document.addEventListener("keyup", e => {
   if (e.code==="Space" && document.getElementById("app").style.display!=="none") { e.preventDefault(); stopRec(); }
 });
 
-// Orb touch/click support
 document.addEventListener("DOMContentLoaded", () => {
   const orb = document.getElementById("orb");
   orb.addEventListener("mousedown", startRec);
   orb.addEventListener("mouseup", stopRec);
   orb.addEventListener("touchstart", e => { e.preventDefault(); startRec(); });
   orb.addEventListener("touchend",   e => { e.preventDefault(); stopRec(); });
-  orb.style.cursor = "pointer";
 });
 </script>
 </body>
