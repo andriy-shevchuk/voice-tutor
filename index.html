@@ -111,6 +111,27 @@
       <button class="eye-btn" onclick="toggleKey()">👁</button>
     </div>
 
+    <label class="lbl">Speech Language</label>
+    <div class="inp-wrap" style="margin-bottom:20px">
+      <select id="lang" style="width:100%;background:var(--inp-bg);border:1.5px solid var(--border);border-radius:10px;padding:11px 14px;color:inherit;font-size:14px;outline:none;font-family:inherit;appearance:auto">
+        <option value="en">English</option>
+        <option value="uk">Ukrainian</option>
+        <option value="de">German</option>
+        <option value="fr">French</option>
+        <option value="es">Spanish</option>
+        <option value="it">Italian</option>
+        <option value="pl">Polish</option>
+        <option value="pt">Portuguese</option>
+        <option value="nl">Dutch</option>
+        <option value="ru">Russian</option>
+        <option value="zh">Chinese</option>
+        <option value="ja">Japanese</option>
+        <option value="ko">Korean</option>
+        <option value="ar">Arabic</option>
+        <option value="tr">Turkish</option>
+      </select>
+    </div>
+
     <label class="lbl">Session Context</label>
     <textarea id="prompt" rows="4" oninput="checkReady()">You will be providing answers on Quality Assurance topics for Middle Manual QA Engineer. Speak in English. Keep answers short, structured, practical and concise.</textarea>
     <p class="hint">Tell the AI who it's speaking to and what topics to focus on.</p>
@@ -172,7 +193,7 @@
 </div>
 
 <script>
-let provider = "openai", apiKey = "", sessionPrompt = "";
+let provider = "openai", apiKey = "", sessionPrompt = "", speechLang = "en";
 let appState = "idle", mediaRec = null, chunks = [], holding = false, fontSize = 22;
 let history = [], isDark = true;
 
@@ -222,6 +243,7 @@ window.onload = () => checkReady();
 function startSession() {
   apiKey = document.getElementById("api-key").value.trim();
   sessionPrompt = document.getElementById("prompt").value.trim();
+  speechLang = document.getElementById("lang").value;
   if (!apiKey || !sessionPrompt) return;
   const tag = document.getElementById("provider-tag");
   tag.textContent = provider.charAt(0).toUpperCase() + provider.slice(1);
@@ -385,8 +407,13 @@ async function stopRec() {
 // ── API ────────────────────────────────────────────────────────────────────
 async function transcribeOpenAI(blob) {
   const fd = new FormData();
-  fd.append("file", blob, "audio.webm");
+  const ext = blob.type.includes("ogg") ? "ogg"
+             : blob.type.includes("mp4") ? "mp4"
+             : blob.type.includes("mpeg") ? "mpeg"
+             : "webm";
+  fd.append("file", blob, `audio.${ext}`);
   fd.append("model", "whisper-1");
+  fd.append("language", speechLang);
   const r = await fetch("https://api.openai.com/v1/audio/transcriptions",
     { method:"POST", headers:{ Authorization:`Bearer ${apiKey}` }, body:fd });
   if (!r.ok) throw new Error(await r.text());
