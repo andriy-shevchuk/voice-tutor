@@ -657,15 +657,15 @@ document.addEventListener("keydown", e => {
 });
 
 document.addEventListener("DOMContentLoaded", () => {
-  const orb = document.getElementById("orb");
+  const orbRing = document.getElementById("orb-ring");
   const toggleRec = e => {
     e.preventDefault();
     e.stopPropagation();
     if (appState === "listening") stopRec();
     else if (appState !== "thinking") startRec();
   };
-  orb.addEventListener("mousedown", toggleRec);
-  orb.addEventListener("touchstart", toggleRec);
+  orbRing.addEventListener("mousedown", toggleRec);
+  orbRing.addEventListener("touchstart", toggleRec);
 });
 </script>
 </body>
