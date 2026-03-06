@@ -658,12 +658,14 @@ document.addEventListener("keydown", e => {
 
 document.addEventListener("DOMContentLoaded", () => {
   const orb = document.getElementById("orb");
-  const toggleRec = () => {
+  const toggleRec = e => {
+    e.preventDefault();
+    e.stopPropagation();
     if (appState === "listening") stopRec();
     else if (appState !== "thinking") startRec();
   };
-  orb.addEventListener("click", toggleRec);
-  orb.addEventListener("touchstart", e => { e.preventDefault(); toggleRec(); });
+  orb.addEventListener("mousedown", toggleRec);
+  orb.addEventListener("touchstart", toggleRec);
 });
 </script>
 </body>
