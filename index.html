@@ -648,11 +648,12 @@ async function answerGemini(t, sysPrompt) {
 
 // ── Keyboard ───────────────────────────────────────────────────────────────
 document.addEventListener("keydown", e => {
-  if (e.code==="Space" && !e.repeat && document.getElementById("app").style.display!=="none") {
-    e.preventDefault();
-    if (appState === "listening") stopRec();
-    else if (appState !== "thinking") startRec();
-  }
+  if (e.code !== "Space") return;
+  if (document.getElementById("app").style.display === "none") return;
+  if (["INPUT","TEXTAREA","SELECT"].includes(document.activeElement?.tagName)) return;
+  e.preventDefault();
+  if (appState === "listening") stopRec();
+  else if (appState !== "thinking") startRec();
 });
 
 document.addEventListener("DOMContentLoaded", () => {
