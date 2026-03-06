@@ -251,7 +251,7 @@ const STATE_CFG = {
   idle:      { label:"Press Space to Start", pulse:false, color:"#6366f1", icon:"🎙" },
   listening: { label:"Listening — press Space to stop", pulse:true,  color:"#ef4444", icon:"🎤" },
   thinking:  { label:"Thinking…",           pulse:true,  color:"#f59e0b", icon:"⏳" },
-  answer:    { label:"Hold Space for next", pulse:false, color:"#10b981", icon:"💬" },
+  answer:    { label:"Press Space for next question", pulse:false, color:"#10b981", icon:"💬" },
   error:     { label:"Error — try again",   pulse:false, color:"#ef4444", icon:"⚠️" },
 };
 
@@ -658,10 +658,12 @@ document.addEventListener("keydown", e => {
 
 document.addEventListener("DOMContentLoaded", () => {
   const orb = document.getElementById("orb");
-  orb.addEventListener("mousedown", startRec);
-  orb.addEventListener("mouseup", stopRec);
-  orb.addEventListener("touchstart", e => { e.preventDefault(); startRec(); });
-  orb.addEventListener("touchend",   e => { e.preventDefault(); stopRec(); });
+  const toggleRec = () => {
+    if (appState === "listening") stopRec();
+    else if (appState !== "thinking") startRec();
+  };
+  orb.addEventListener("click", toggleRec);
+  orb.addEventListener("touchstart", e => { e.preventDefault(); toggleRec(); });
 });
 </script>
 </body>
