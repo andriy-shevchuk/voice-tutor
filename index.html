@@ -99,7 +99,12 @@
   /* ── MOBILE ────────────────────────────────────────────────────────────── */
   @media (max-width: 600px) {
     /* Setup card */
-    #setup { padding: 16px; align-items: flex-start; padding-top: 32px; }
+    #setup {
+      padding: 16px;
+      align-items: flex-start;
+      padding-top: 32px;
+      min-height: 100dvh;
+    }
     .card { padding: 24px 18px; border-radius: 16px; }
     .card h1 { font-size: 22px; }
 
@@ -112,18 +117,25 @@
     .header-left h2 { font-size: 15px; }
     .header-right { gap: 8px; }
 
-    /* Hide font size slider on mobile — use default */
+    /* Hide font size slider on mobile */
     .font-ctrl { display: none; }
 
-    /* Bigger tap targets for toggles */
+    /* Bigger tap targets */
     .lang-btn { padding: 7px 12px; font-size: 13px; }
     .mode-btn  { padding: 7px 10px; font-size: 11px; }
     .icon-btn  { padding: 7px 10px; font-size: 12px; }
 
-    /* Hide history sidebar on mobile */
+    /* Hide history sidebar */
     #history { display: none !important; }
 
+    /* App takes real visible viewport */
+    #app {
+      min-height: 100dvh;
+      height: 100dvh;
+    }
+
     /* Main content area */
+    .main { overflow-y: auto; }
     .center { padding: 16px; gap: 12px; }
 
     /* Q&A boxes */
@@ -139,7 +151,7 @@
     /* PDF zone */
     #pdf-zone { padding: 24px 16px; }
 
-    /* Answers — slightly smaller font on mobile by default */
+    /* Answers default font */
     .a-text { font-size: 17px !important; }
   }
 
