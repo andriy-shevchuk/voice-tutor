@@ -106,8 +106,8 @@
       <h1>🎙 Voice Tutor</h1>
       <div style="display:flex;align-items:center;gap:8px">
         <div class="lang-toggle">
-          <button class="lang-btn" id="ui-en">EN</button>
-          <button class="lang-btn active" id="ui-uk">UA</button>
+          <button class="lang-btn active" id="ui-en">EN</button>
+          <button class="lang-btn" id="ui-uk">UA</button>
         </div>
         <button id="theme-btn" title="Toggle theme">🌙</button>
       </div>
@@ -175,8 +175,8 @@
         <span class="fb">A</span>
       </div>
       <div class="lang-toggle">
-        <button class="lang-btn" id="ui-en-app">EN</button>
-        <button class="lang-btn active" id="ui-uk-app">UA</button>
+        <button class="lang-btn active" id="ui-en-app">EN</button>
+        <button class="lang-btn" id="ui-uk-app">UA</button>
       </div>
       <button id="theme-btn-app" class="icon-btn">🌙</button>
       <button class="icon-btn" onclick="goSetup()" id="lbl-setupbtn"></button>
@@ -301,7 +301,7 @@ const I18N = {
 
 // ── State ──────────────────────────────────────────────────────────────────
 let uiLang = "uk";
-let provider = "openai", apiKey = "", sessionPrompt = "", speechLang = "uk";
+let provider = "openai", apiKey = "", sessionPrompt = "", speechLang = "en";
 let appState = "idle", mediaRec = null, chunks = [], holding = false, fontSize = 22;
 let history = [], isDark = true;
 let mode = "free";
@@ -734,7 +734,7 @@ document.addEventListener("DOMContentLoaded", () => {
   ring.addEventListener("touchstart", e => { e.preventDefault(); if (appState==="listening") stopRec(); else if (appState!=="thinking") startRec(); });
 
   // set default language
-  setUiLang("uk");
+  setUiLang("en");
 });
 </script>
 </body>
