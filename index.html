@@ -98,30 +98,21 @@
 
   /* ── MOBILE ────────────────────────────────────────────────────────────── */
   @media (max-width: 600px) {
-    /* Prevent any horizontal overflow */
+    /* Prevent horizontal overflow */
     html, body { overflow-x: hidden; width: 100%; }
 
-    /* Setup card */
-    #setup {
-      padding: 12px;
-      align-items: stretch;
-      min-height: 100dvh;
-    }
-    .card {
-      padding: 20px 16px;
-      border-radius: 16px;
-      width: 100%;
-    }
+    /* ── Setup screen ── */
+    #setup { padding: 16px; align-items: stretch; min-height: 100dvh; }
+    .card { padding: 24px 20px; border-radius: 16px; width: 100%; }
     .card h1 { font-size: 20px; }
     .card p.sub { font-size: 13px; margin-bottom: 20px; }
-
-    /* Provider buttons */
     .providers { flex-wrap: wrap; }
     .provider-btn { min-width: 80px; font-size: 12px; padding: 8px 4px; }
 
-    /* Header — two rows, nothing overflows */
+    /* ── Header: row 1 = icon + title + lang toggle + theme
+           row 2 = mode toggle + setup button ── */
     header {
-      padding: 8px 12px;
+      padding: 8px 14px;
       flex-direction: column;
       align-items: stretch;
       gap: 6px;
@@ -131,53 +122,64 @@
       align-items: center;
       justify-content: space-between;
       width: 100%;
+      gap: 8px;
     }
-    .header-left h2 { font-size: 14px; }
+    .header-left h2 { font-size: 14px; flex: 1; }
     .provider-tag { font-size: 10px; }
 
+    /* Move lang toggle + theme into header-left row */
     .header-right {
-      display: flex;
+      display: contents; /* dissolve — children go into flow */
+    }
+    .lang-toggle {
+      order: 1;
+    }
+    #theme-btn-app {
+      order: 2;
+      font-size: 18px;
+      background: none;
+      border: none;
+      cursor: pointer;
+      padding: 4px 6px;
+    }
+
+    /* Row 2: mode toggle + setup button side by side */
+    .mode-toggle { order: 3; }
+    #lbl-setupbtn { order: 4; }
+
+    /* Rebuild row 2 as a flex row */
+    header > .header-right {
+      display: flex !important;
       flex-direction: row;
       align-items: center;
       justify-content: space-between;
       width: 100%;
-      gap: 4px;
-      flex-wrap: nowrap;
+      gap: 8px;
     }
 
-    /* Mode toggle - shrink text */
-    .mode-toggle { padding: 3px; }
-    .mode-btn { padding: 5px 7px; font-size: 11px; }
-
-    /* Lang toggle */
-    .lang-btn { padding: 5px 10px; font-size: 12px; }
-
-    /* Theme & setup buttons */
-    .icon-btn { padding: 5px 8px; font-size: 12px; white-space: nowrap; }
-    #theme-btn-app { font-size: 16px; padding: 4px 6px; }
-
-    /* Hide font size slider */
+    /* Sizes */
+    .mode-btn  { padding: 6px 10px; font-size: 11px; }
+    .lang-btn  { padding: 6px 10px; font-size: 12px; }
+    .icon-btn  { padding: 6px 10px; font-size: 12px; white-space: nowrap; }
     .font-ctrl { display: none; }
 
-    /* Hide history sidebar */
+    /* Hide history */
     #history { display: none !important; }
 
     /* App viewport */
     #app { min-height: 100dvh; height: 100dvh; }
-
-    /* Main content */
     .main { overflow-y: auto; overflow-x: hidden; }
-    .center { padding: 14px; padding-bottom: 32px; gap: 12px; }
+    .center { padding: 14px 16px; padding-bottom: 32px; gap: 12px; }
 
     /* Q&A boxes */
     .q-box { padding: 12px 14px; }
     .a-box { padding: 16px 14px; }
 
-    /* Orb */
-    .orb-wrap { padding: 16px 0 24px; }
-    .orb { width: 80px; height: 80px; font-size: 34px; }
-    .orb-label { font-size: 13px; }
-    .orb-hint { font-size: 11px; text-align: center; padding: 0 16px; }
+    /* Orb + label visible */
+    .orb-wrap { padding: 16px 0 28px; }
+    .orb { width: 76px; height: 76px; font-size: 32px; }
+    .orb-label { font-size: 13px; margin-top: 10px; }
+    .orb-hint  { font-size: 11px; text-align: center; padding: 0 16px; margin-top: 4px; color: var(--sub); }
 
     /* PDF zone */
     #pdf-zone { padding: 24px 16px; }
