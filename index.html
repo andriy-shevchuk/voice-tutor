@@ -112,23 +112,34 @@
     .providers { flex-wrap: wrap; }
     .provider-btn { min-width: 80px; font-size: 12px; padding: 8px 4px; }
 
-    /* Header */
-    header { padding: 10px 14px; gap: 8px; }
+    /* Header — stack into 2 clean rows */
+    header {
+      padding: 8px 12px;
+      flex-direction: column;
+      align-items: stretch;
+      gap: 6px;
+    }
+    .header-left { justify-content: space-between; }
+    .header-right {
+      display: grid;
+      grid-template-columns: 1fr auto auto auto;
+      align-items: center;
+      gap: 6px;
+    }
     .header-left h2 { font-size: 15px; }
-    .header-right { gap: 8px; }
 
     /* Hide font size slider on mobile */
     .font-ctrl { display: none; }
 
     /* Bigger tap targets */
-    .lang-btn { padding: 7px 12px; font-size: 13px; }
-    .mode-btn  { padding: 7px 10px; font-size: 11px; }
-    .icon-btn  { padding: 7px 10px; font-size: 12px; }
+    .lang-btn { padding: 7px 12px; font-size: 12px; }
+    .mode-btn  { padding: 7px 8px;  font-size: 11px; }
+    .icon-btn  { padding: 7px 10px; font-size: 12px; white-space: nowrap; }
 
     /* Hide history sidebar */
     #history { display: none !important; }
 
-    /* App takes real visible viewport */
+    /* App — use dvh and add bottom padding so orb clears browser bar */
     #app {
       min-height: 100dvh;
       height: 100dvh;
@@ -136,14 +147,20 @@
 
     /* Main content area */
     .main { overflow-y: auto; }
-    .center { padding: 16px; gap: 12px; }
+    .center {
+      padding: 16px;
+      padding-bottom: 32px; /* extra space above browser bar */
+      gap: 12px;
+    }
 
     /* Q&A boxes */
     .q-box { padding: 12px 14px; }
     .a-box { padding: 16px 14px; }
 
-    /* Orb */
-    .orb-wrap { padding: 16px 0 8px; }
+    /* Orb — add bottom padding so it's not cut off */
+    .orb-wrap {
+      padding: 16px 0 24px;
+    }
     .orb { width: 80px; height: 80px; font-size: 34px; }
     .orb-label { font-size: 13px; }
     .orb-hint  { font-size: 11px; text-align: center; padding: 0 16px; }
