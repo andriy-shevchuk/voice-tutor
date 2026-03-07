@@ -98,77 +98,91 @@
 
   /* ── MOBILE ────────────────────────────────────────────────────────────── */
   @media (max-width: 600px) {
+    /* Prevent any horizontal overflow */
+    html, body { overflow-x: hidden; width: 100%; }
+
     /* Setup card */
     #setup {
-      padding: 16px;
-      align-items: flex-start;
-      padding-top: 32px;
+      padding: 12px;
+      align-items: stretch;
       min-height: 100dvh;
     }
-    .card { padding: 24px 18px; border-radius: 16px; }
-    .card h1 { font-size: 22px; }
+    .card {
+      padding: 20px 16px;
+      border-radius: 16px;
+      width: 100%;
+    }
+    .card h1 { font-size: 20px; }
+    .card p.sub { font-size: 13px; margin-bottom: 20px; }
 
     /* Provider buttons */
     .providers { flex-wrap: wrap; }
     .provider-btn { min-width: 80px; font-size: 12px; padding: 8px 4px; }
 
-    /* Header — stack into 2 clean rows */
+    /* Header — two rows, nothing overflows */
     header {
       padding: 8px 12px;
       flex-direction: column;
       align-items: stretch;
       gap: 6px;
     }
-    .header-left { justify-content: space-between; }
-    .header-right {
-      display: grid;
-      grid-template-columns: 1fr auto auto auto;
+    .header-left {
+      display: flex;
       align-items: center;
-      gap: 6px;
+      justify-content: space-between;
+      width: 100%;
     }
-    .header-left h2 { font-size: 15px; }
+    .header-left h2 { font-size: 14px; }
+    .provider-tag { font-size: 10px; }
 
-    /* Hide font size slider on mobile */
+    .header-right {
+      display: flex;
+      flex-direction: row;
+      align-items: center;
+      justify-content: space-between;
+      width: 100%;
+      gap: 4px;
+      flex-wrap: nowrap;
+    }
+
+    /* Mode toggle - shrink text */
+    .mode-toggle { padding: 3px; }
+    .mode-btn { padding: 5px 7px; font-size: 11px; }
+
+    /* Lang toggle */
+    .lang-btn { padding: 5px 10px; font-size: 12px; }
+
+    /* Theme & setup buttons */
+    .icon-btn { padding: 5px 8px; font-size: 12px; white-space: nowrap; }
+    #theme-btn-app { font-size: 16px; padding: 4px 6px; }
+
+    /* Hide font size slider */
     .font-ctrl { display: none; }
-
-    /* Bigger tap targets */
-    .lang-btn { padding: 7px 12px; font-size: 12px; }
-    .mode-btn  { padding: 7px 8px;  font-size: 11px; }
-    .icon-btn  { padding: 7px 10px; font-size: 12px; white-space: nowrap; }
 
     /* Hide history sidebar */
     #history { display: none !important; }
 
-    /* App — use dvh and add bottom padding so orb clears browser bar */
-    #app {
-      min-height: 100dvh;
-      height: 100dvh;
-    }
+    /* App viewport */
+    #app { min-height: 100dvh; height: 100dvh; }
 
-    /* Main content area */
-    .main { overflow-y: auto; }
-    .center {
-      padding: 16px;
-      padding-bottom: 32px; /* extra space above browser bar */
-      gap: 12px;
-    }
+    /* Main content */
+    .main { overflow-y: auto; overflow-x: hidden; }
+    .center { padding: 14px; padding-bottom: 32px; gap: 12px; }
 
     /* Q&A boxes */
     .q-box { padding: 12px 14px; }
     .a-box { padding: 16px 14px; }
 
-    /* Orb — add bottom padding so it's not cut off */
-    .orb-wrap {
-      padding: 16px 0 24px;
-    }
+    /* Orb */
+    .orb-wrap { padding: 16px 0 24px; }
     .orb { width: 80px; height: 80px; font-size: 34px; }
     .orb-label { font-size: 13px; }
-    .orb-hint  { font-size: 11px; text-align: center; padding: 0 16px; }
+    .orb-hint { font-size: 11px; text-align: center; padding: 0 16px; }
 
     /* PDF zone */
     #pdf-zone { padding: 24px 16px; }
 
-    /* Answers default font */
+    /* Answers */
     .a-text { font-size: 17px !important; }
   }
 
